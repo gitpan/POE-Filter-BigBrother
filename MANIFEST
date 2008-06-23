@@ -1,0 +1,12 @@
+Changes
+GPL
+lib/POE/Filter/BigBrother.pm
+LICENSE
+Makefile.PL
+MANIFEST
+META.yml
+README
+t/TestFilter.pm
+t/01_BigBrother.t
+t/99_pod.t
+t/99_pod_coverage.t
