@@ -1,0 +1,5 @@
+2008-06-24  Yves BLUSSEAU  <yblusseau@cpan.org>
+
+	* Version 0.11 released 
+	* Makefile.PL: add the license tag. 
+

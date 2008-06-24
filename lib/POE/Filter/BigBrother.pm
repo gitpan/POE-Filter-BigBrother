@@ -5,10 +5,11 @@
 package POE::Filter::BigBrother;
 
 use strict;
+use warnings;
 use POE::Filter;
 
 use vars qw($VERSION @ISA);
-$VERSION   = '0.10';
+$VERSION   = '0.11';
 @ISA = qw(POE::Filter);
 
 sub DEBUG () 	 { 0 }
