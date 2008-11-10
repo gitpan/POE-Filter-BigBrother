@@ -9,7 +9,7 @@ use warnings;
 use POE::Filter;
 
 use vars qw($VERSION @ISA);
-$VERSION   = '0.11';
+$VERSION   = '0.12';
 @ISA = qw(POE::Filter);
 
 sub DEBUG () 	 { 0 }
@@ -64,6 +64,7 @@ sub get_one {
   } else {
 	  my $block = $self->[BUFFER];
 	  $self->[BUFFER] = ''; # Clear the buffer
+	  $block =~ s/\0+$//;   # Remove NULL characters from the end
 	  return [ $block ];	# Return the data
   }
 }
