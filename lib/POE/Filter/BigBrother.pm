@@ -9,13 +9,18 @@ use warnings;
 use POE::Filter;
 
 use vars qw($VERSION @ISA);
-$VERSION   = '0.12';
+$VERSION   = '0.13';
 @ISA = qw(POE::Filter);
 
 sub DEBUG () 	 { 0 }
 
 sub BUFFER ()    { 0 }
 sub COMBO_MSG () { 1 }
+
+use constant {
+    LF      => "\x0A",
+    CR      => "\x0D",
+};
 
 #------------------------------------------------------------------------------
 sub new {
@@ -44,24 +49,32 @@ sub get_one_start {
 
   DEBUG and warn $self->[BUFFER];
 
-  # Is it a combo message ?
-  if ($self->[BUFFER] =~ s/^combo(?:\x0D\x0A?|\x0A\x0D?)//) {
-	  $self->[COMBO_MSG] = 1; # The message is a combo message
+  # Is it a combo message?
+  if (index($self->[BUFFER], "combo".CR) == 0 or
+      index($self->[BUFFER], "combo".LF) == 0) {
+      # suppress the "combo" keyword and the first new-line character
+      substr($self->[BUFFER], 0, 6, "");
+
+      # suppress a potential second new-line character
+      my $first = substr($self->[BUFFER], 0, 1);
+      substr($self->[BUFFER], 0, 1, "") if $first eq CR or $first eq LF;
+
+      $self->[COMBO_MSG] = 1; # The message is a combo message
   }
 }
 
 sub get_one {
   my $self = shift;
-  return [] unless length $self->[BUFFER];
+  return [] unless defined $self->[BUFFER] and length $self->[BUFFER];
+
   # Split the Combo message
-  if ($self->[COMBO_MSG] &&
-	  $self->[BUFFER] =~ m/(.*?) # the datas
-						   (?:(?:\x0D\x0A?){2}|(?:\x0A\x0D?){2}) # two newline
-						   (status.*) # start of the new status message
-						  /xism) {
-	  $self->[BUFFER] = $2; # Next message
-	  return [ $1 ]; 		# Return the data
-  } else {
+  if ($self->[COMBO_MSG] and $self->[BUFFER] =~ /(?:(?:\x0D\x0A?){2}|(?:\x0A\x0D?){2})status/) {
+      my ($msg, $rest) = split /(?:(?:\x0D\x0A?){2}|(?:\x0A\x0D?){2})status/, $self->[BUFFER], 2;
+
+      $self->[BUFFER] = "status$rest"; # Next message
+      return [ $msg ]; # First message
+  }
+  else {
 	  my $block = $self->[BUFFER];
 	  $self->[BUFFER] = ''; # Clear the buffer
 	  $block =~ s/\0+$//;   # Remove NULL characters from the end
